@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practitioner</title>
+    <style>
+        .field {
+            width: 150pt;
+            color: blue;
+            background-color: pink;
+            display: inline-block;
+            padding-left: 20px;
+        }
+
+        table,
+        table tr,
+        table tr td {
+            border: 1px black solid;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        input[type=text] {
+            width: 300px;
+        }
+    </style>
+    <script>
+
+        function add_telecom_row() {
+
+            let tel_sys = document.getElementById("tel_sys").options[
+                document.getElementById("tel_sys").selectedIndex
+            ].value;
+            let tel_val = document.getElementById("tel_val").value;
+            let tel_use = document.getElementById("tel_use").options[
+                document.getElementById("tel_use").selectedIndex
+            ].value;
+
+            var table = document.getElementById("tel_tab");
+            var row = table.insertRow(2);
+            let sys_cell = row.insertCell(0);
+            sys_cell.innerHTML = tel_sys;
+            let val_cell = row.insertCell(1);
+            val_cell.innerHTML = tel_val;
+            let use_cell = row.insertCell(2);
+            use_cell.innerHTML = tel_use;
+        }
+
+        function add_qualification_row() {
+
+            let qua_code = document.getElementById("qua_code").options[
+                document.getElementById("qua_code").selectedIndex
+            ].innerHTML.trim() + '_' + document.getElementById("qua_code").value;
+            let qua_start_date = document.getElementById("qua_start_date").value;
+            let qua_end_date = document.getElementById("qua_end_date").value;
+            let qua_issuer = document.getElementById("qua_issuer").value;
+
+            var table = document.getElementById("qua_tab");
+            var row = table.insertRow(2);
+            let code_cell = row.insertCell(0);
+            code_cell.innerHTML = qua_code;
+            let period_cell = row.insertCell(1);
+            period_cell.innerHTML = qua_start_date + ':' + qua_end_date;
+            let issuer_cell = row.insertCell(2);
+            issuer_cell.innerHTML = qua_issuer;
+        }
+
+        function HTTPPutData(urlStr, dataStr) {
+            console.table(dataStr);
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("Put", urlStr, true);
+            rawFile.setRequestHeader("Content-type", "application/json+fhir");
+
+            rawFile.onreadystatechange = function () {
+                if (rawFile.readyState === 4) {
+                    ret = rawFile.responseText;
+                    alert('data retrieved');
+                    console.table(ret);
+                }
+            }
+            rawFile.send(dataStr);
+        }
+
+        function putPractitioner() {
+            const urlStr = 'https://203.64.84.150:58443/fhirtest1/fhir/Practitioner';
+
+            var resource = {
+                "resourceType": "Practitioner",
+                "id": document.getElementById("fhir_id").value,
+                "identifier": {
+                    "system": "https://www.dicom.org.tw/cs/ResidentNumber_tw",
+                    "value": document.getElementById("national_id").value
+                },
+                "name": [
+                    {
+                        "family": document.getElementById("lname").value,
+                        "given": document.getElementById("fname").value,
+                        "text": document.getElementById("lname").value + ' ' + document.getElementById("fname").value,
+                        "prefix": document.getElementById("name_prefix").value
+                    }
+                ],
+                "gender": document.getElementById("gender").options[
+                    document.getElementById("gender").selectedIndex
+                ].value,
+                "birthDate": document.getElementById("birthDate").value,
+                "active": true,
+                "telecom": [],
+                "qualification": []
+            };
+
+            var tel_tab = document.getElementById("tel_tab");
+            const tel_tab_len = tel_tab.rows.length - 2;
+            for (let i = 0; i < tel_tab_len; i++) {
+                const tel = {
+                    "system": tel_tab.rows[i + 2].cells[0].innerHTML,
+                    "value": tel_tab.rows[i + 2].cells[1].innerHTML,
+                    "use": tel_tab.rows[i + 2].cells[2].innerHTML
+                }
+                resource['telecom'].push(tel);
+            }
+
+            var qua_tab = document.getElementById("qua_tab");
+            const qua_tab_len = qua_tab.rows.length - 2;
+            for (let i = 0; i < qua_tab_len; i++) {
+
+                const qua = {
+                    "code": {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/v2-0360/2.7",
+                                "code": qua_tab.rows[i + 2].cells[0].innerHTML.split('_')[1],
+                                "display": qua_tab.rows[i + 2].cells[0].innerHTML.split('_')[0]
+                            }
+                        ],
+                        "text": qua_tab.rows[i + 2].cells[0].innerHTML.split('_')[0]
+                    },
+                    "period": {
+                        "start": qua_tab.rows[i + 2].cells[1].innerHTML.split(':')[0] + 'T00:00:00',
+                        "end": qua_tab.rows[i + 2].cells[1].innerHTML.split(':').length == 2 ? qua_tab.rows[i + 2].cells[1].innerHTML.split(':')[1] + 'T00:00:00' : ''
+                    },
+                    "issuer": {
+                        "display": qua_tab.rows[i + 2].cells[2].innerHTML
+                    }
+                }
+                resource['qualification'].push(qua);
+            }
+            console.log(resource);
+            HTTPPutData(urlStr + '/' + resource['id'], JSON.stringify(resource));
+        }
+    </script>
+</head>
+
+<body>
+    <div id="main">
+        <div id="create">
+            <h1>Create</h1>
+            <span class="field">Practitioner id: </span> <input type="text" id="fhir_id" />
+            <br />
+            <span class="field">Prefix: </span>
+            <select id="name_prefix">
+                <option>Mr.</option>
+                <option>Ms.</option>
+                <option>Miss</option>
+                <option>Dr.</option>
+                <option>Prof.</option>
+            </select>
+            <span class="field">First Name: </span>
+            <input type="text" id="fname" placeholder="given name" /> &emsp;
+            <span class="field">Last Name: </span>
+            <input type="text" id="lname" placeholder="family name" />
+            <br />
+            <span class="field">National ID: </span>
+            <input type="text" id="national_id" />
+            <br />
+            <span class="field">Gender: </span>
+            <select id="gender">
+                <option id="male" value="male">Male</option>
+                <option id="female" value="female">Female</option>
+                <option id="other" value="other">Other</option>
+                <option id="unknown" value="unknown">Unknown</option>
+            </select>
+            <br />
+            <span class="field">Date of Birth: </span>
+            <input type="date" id="birthDate" />
+            <br />
+            <span class="field">Telecom: </span>
+            <input type="button" id="tel_but" onclick="add_telecom_row();" value="Add More Telecom" />
+            <table id="tel_tab">
+                <tr>
+                    <td>Type</td>
+                    <td>Detail (Number/URL)</td>
+                    <td>Purpose</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select id="tel_sys">
+                            <option id="tel_sys_phone" value="phone">Phone</option>
+                            <option id="tel_sys_fax" value="fax">Fax</option>
+                            <option id="tel_sys_email" value="email">Email</option>
+                            <option id="tel_sys_other" value="other">Other</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" id="tel_val" />
+                    </td>
+                    <td>
+                        <select id="tel_use">
+                            <option id="tel_use_home" value="home">Home</option>
+                            <option id="tel_use_work" value="work">Work</option>
+                            <option id="tel_use_mobile" value="mobile">Mobile</option>
+                            <option id="tel_use_temp" value="temp">Temporary</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <br />
+            <span class="field">Qualification: </span>
+            <input type="button" id="qua_but" onclick="add_qualification_row();" value="Add More Qualification" />
+            <table id="qua_tab">
+                <tr>
+                    <td>Title</td>
+                    <td>Period (Start/End)</td>
+                    <td>Issuer</td>
+                </tr>
+                <tr>
+                    <td>
+                        <select id="qua_code">
+                            <option id="qua_code_AA" value="AA">Associate of Arts</option>
+                            <option id="qua_code_AAS" value="AAS">Associate of Applied Science</option>
+                            <option id="qua_code_ABA" value="ABA">Associate of Business Administration</option>
+                            <option id="qua_code_AE" value="AE">Associate of Engineering</option>
+                            <option id="qua_code_AS" value="AS">Associate of Science </option>
+                            <option id="qua_code_BA" value="BA">Bachelor of Arts </option>
+                            <option id="qua_code_BBA" value="BBA">Bachelor of Business Administration</option>
+                            <option id="qua_code_BE" value="BE">Bachelor or Engineering</option>
+                            <option id="qua_code_BFA" value="BFA">Bachelor of Fine Arts</option>
+                            <option id="qua_code_BN" value="BN">Bachelor of Nursing</option>
+                            <option id="qua_code_BS" value="BS">Bachelor of Science</option>
+                            <option id="qua_code_BSL" value="BSL">Bachelor of Science -Law</option>
+                            <option id="qua_code_BSN" value="BSN">Bachelor on Science - Nursing</option>
+                            <option id="qua_code_BT" value="BT">Bachelor of Theology</option>
+                            <option id="qua_code_CANP" value="CANP">Certified Adult Nurse Practitioner</option>
+                            <option id="qua_code_CER" value="CER">Certificate</option>
+                            <option id="qua_code_CMA" value="CMA">Certified Medical Assistant</option>
+                            <option id="qua_code_CNM" value="CNM">Certified Nurse Midwife</option>
+                            <option id="qua_code_CNP" value="CNP">Certified Nurse Practitioner</option>
+                            <option id="qua_code_CNS" value="CNS">Certified Nurse Specialist</option>
+                            <option id="qua_code_CPNP" value="CPNP">Certified Pediatric Nurse Practitioner</option>
+                            <option id="qua_code_CRN" value="CRN">Certified Registered Nurse</option>
+                            <option id="qua_code_CTR" value="CTR">Certified Tumor Registrar</option>
+                            <option id="qua_code_DBA" value="DBA">Doctor of Business Administration</option>
+                            <option id="qua_code_DED" value="DED">Doctor of Education</option>
+                            <option id="qua_code_DIP" value="DIP">Diploma</option>
+                            <option id="qua_code_DO" value="DO">Doctor of Osteopathy</option>
+                            <option id="qua_code_EMT" value="EMT">Emergency Medical Technician</option>
+                            <option id="qua_code_EMTP" value="EMTP">Emergency Medical Technician -Paramedic</option>
+                            <option id="qua_code_FPNP" value="FPNP">Family Practice Nurse Practitioner</option>
+                            <option id="qua_code_HS" value="HS">High School Graduate</option>
+                            <option id="qua_code_JD" value="JD">Juris Doctor</option>
+                            <option id="qua_code_MA" value="MA">Master of Arts</option>
+                            <option id="qua_code_MBA" value="MBA">Master of Business Administration</option>
+                            <option id="qua_code_MCE" value="MCE">Master of Civil Engineering</option>
+                            <option id="qua_code_MD" value="MD">Doctor of Medicine</option>
+                            <option id="qua_code_MDA" value="MDA">Medical Assistant</option>
+                            <option id="qua_code_MDI" value="MDI">Master of Divinity</option>
+                            <option id="qua_code_ME" value="ME">Master of Engineering</option>
+                            <option id="qua_code_MED" value="MED">Master of Education</option>
+                            <option id="qua_code_MEE" value="MEE">Master of Electrical Engineering</option>
+                            <option id="qua_code_MFA" value="MFA">Master of Fine Arts</option>
+                            <option id="qua_code_MME" value="MME">Master of Mechanical Engineering</option>
+                            <option id="qua_code_MS" value="MS">Master of Science</option>
+                            <option id="qua_code_MSL" value="MSL">Master of Science - Law</option>
+                            <option id="qua_code_MSN" value="MSN">Master of Science - Nursing</option>
+                            <option id="qua_code_MT" value="MT">Medical Technician</option>
+                            <option id="qua_code_MTH" value="MTH">Master of Theology</option>
+                            <option id="qua_code_NG" value="NG">Non-Graduate</option>
+                            <option id="qua_code_NP" value="NP">Nurse Practitioner</option>
+                            <option id="qua_code_PA" value="PA">Physician Assistant</option>
+                            <option id="qua_code_PHD" value="PHD">Doctor of Philosophy</option>
+                            <option id="qua_code_PHE" value="PHE">Doctor of Engineering</option>
+                            <option id="qua_code_PHS" value="PHS">Doctor of Science</option>
+                            <option id="qua_code_PN" value="PN">Advanced Practice Nurse</option>
+                            <option id="qua_code_PharmD" value="PharmD">Doctor of Pharmacy</option>
+                            <option id="qua_code_RMA" value="RMA">Registered Medical Assistant</option>
+                            <option id="qua_code_RN" value="RN">Registered Nurse</option>
+                            <option id="qua_code_RPH" value="RPH">Registered Pharmacist</option>
+                            <option id="qua_code_SEC" value="SEC">Secretarial Certificate</option>
+                            <option id="qua_code_TS" value="TS">Trade School Graduate</option>
+                        </select>
+                    </td>
+                    <td>
+                        <span>Start:</span><input type="date" id="qua_start_date" />
+                        <span>End:</span><input type="date" id="qua_end_date" />
+                    </td>
+                    <td>
+                        <input type="text" id="qua_issuer" />
+                    </td>
+                </tr>
+            </table>
+            <br />
+            <input type="button" onclick="putPractitioner()" value="CREATE" />
+        </div>
+    </div>
+</body>
+
+</html>
