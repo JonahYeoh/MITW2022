@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient SC1</title>
+    <style>
+        .field {
+            width: 150pt;
+            color: blue;
+            background-color: pink;
+            display: inline-block;
+            padding-left: 20px;
+        }
+
+        table,
+        table tr,
+        table tr td {
+            border: 1px black solid;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        input[type=text],
+        input[type=number],
+        select {
+            width: 300px;
+        }
+    </style>
+    <script src="setting.js"></script>
+    <script>
+        function HTTPPutData(urlStr, dataStr) {
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("Put", urlStr, true);
+            rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.onreadystatechange = function () {
+                if (rawFile.readyState === 4) {
+                    ret = rawFile.responseText;
+                    alert('data retrieved');
+                    console.table(ret);
+                }
+            }
+            rawFile.send(dataStr);
+        }
+
+        function putPatient(){
+            const urlStr = `${URL}/Patient/${document.getElementById("patient_id").value}`;
+            var resource = {
+                "resourceType": "Patient",
+                "id": document.getElementById("patient_id").value,
+                "identifier": [
+                    {
+                        "system": "https://www.dicom.org.tw/cs/ResidentNumber_tw",
+                        "value": document.getElementById("national_id").value
+                    }
+                ],
+                "active": true,
+                "name": [
+                    {
+                        "text": document.getElementById("lname").value + ' ' + document.getElementById("fname").value,
+                        "family": document.getElementById("lname").value,
+                        "given": [
+                            document.getElementById("fname").value
+                        ]
+                    }
+                ],
+                "gender": document.getElementById("gender").options[
+                    document.getElementById("gender").selectedIndex
+                ].value,
+                "birthDate": document.getElementById("birthDate").value,
+                "managingOrganization": {
+                    "reference": "Organization/" + document.getElementById("organization").value
+                }
+            };
+            console.log(resource);
+            HTTPPutData(urlStr, JSON.stringify(resource));
+        }
+
+        
+    </script>
+</head>
+<body>
+    <div id="main">
+        <div id="create">
+            <h1>Create</h1>
+            <span class="field">Patient ID:</span> <input type="text" id="patient_id" />
+            <br />
+            <span class="field">Prefix: </span>
+            <select id="name_prefix">
+                <option>Mr.</option>
+                <option>Ms.</option>
+                <option>Miss</option>
+                <option>Dr.</option>
+                <option>Prof.</option>
+            </select>
+            <br />
+            <span class="field">First Name: </span>
+            <input type="text" id="fname" placeholder="given name" /> &emsp;
+            <span class="field">Last Name: </span>
+            <input type="text" id="lname" placeholder="family name" />
+            <br />
+            <span class="field">National ID: </span>
+            <input type="text" id="national_id" />
+            <br />
+            <span class="field">Gender: </span>
+            <select id="gender">
+                <option id="male" value="male">Male</option>
+                <option id="female" value="female">Female</option>
+                <option id="other" value="other">Other</option>
+                <option id="unknown" value="unknown">Unknown</option>
+            </select>
+            <br />
+            <span class="field">Date of Birth: </span>
+            <input type="date" id="birthDate" />
+            <br />
+            <span class="field">Organization: </span>
+            <input type="text" id="organization" value="MITW.ForIdentifier" />
+            <br />
+            <input type="button" onclick="putPatient()" value="CREATE" />
+        </div>
+        <hr />
+        <div id="retrive">
+
+        </div>
+    </div>
+</body>
+</html>
