@@ -30,27 +30,8 @@
             width: 300px;
         }
     </style>
+    <script src="setting.js"></script>
     <script>
-
-        function add_telecom_row() {
-
-            let tel_sys = document.getElementById("tel_sys").options[
-                document.getElementById("tel_sys").selectedIndex
-            ].value;
-            let tel_val = document.getElementById("tel_val").value;
-            let tel_use = document.getElementById("tel_use").options[
-                document.getElementById("tel_use").selectedIndex
-            ].value;
-
-            var table = document.getElementById("tel_tab");
-            var row = table.insertRow(2);
-            let sys_cell = row.insertCell(0);
-            sys_cell.innerHTML = tel_sys;
-            let val_cell = row.insertCell(1);
-            val_cell.innerHTML = tel_val;
-            let use_cell = row.insertCell(2);
-            use_cell.innerHTML = tel_use;
-        }
 
         function add_qualification_row() {
 
@@ -81,22 +62,34 @@
                 if (rawFile.readyState === 4) {
                     ret = rawFile.responseText;
                     alert('data retrieved');
-                    console.table(ret);
+                    //console.table(ret);
+                    var output_panel = document.getElementById("output_panel");
+                    output_panel.value = ret;
                 }
             }
             rawFile.send(dataStr);
         }
 
         function putPractitioner() {
-            const urlStr = 'https://203.64.84.150:58443/fhirtest1/fhir/Practitioner';
-
+            const urlStr = `${URL}/Practitioner/${document.getElementById("fhir_id").value}`;
             var resource = {
                 "resourceType": "Practitioner",
                 "id": document.getElementById("fhir_id").value,
-                "identifier": {
-                    "system": "https://www.dicom.org.tw/cs/ResidentNumber_tw",
-                    "value": document.getElementById("national_id").value
-                },
+                "identifier": [
+                    {
+                        "use": "official",
+                        "type": {
+                            "coding": [
+                                {
+                                    "system": "http://terminology.hl7.org/CodeSystem/v2-0203",
+                                    "code": "MD"
+                                }
+                            ]
+                        },
+                        "system": "https://www.tph.mohw.gov.tw",
+                        "value": document.getElementById("md").value
+                    }
+                ],
                 "name": [
                     {
                         "family": document.getElementById("lname").value,
@@ -110,20 +103,8 @@
                 ].value,
                 "birthDate": document.getElementById("birthDate").value,
                 "active": true,
-                "telecom": [],
                 "qualification": []
             };
-
-            var tel_tab = document.getElementById("tel_tab");
-            const tel_tab_len = tel_tab.rows.length - 2;
-            for (let i = 0; i < tel_tab_len; i++) {
-                const tel = {
-                    "system": tel_tab.rows[i + 2].cells[0].innerHTML,
-                    "value": tel_tab.rows[i + 2].cells[1].innerHTML,
-                    "use": tel_tab.rows[i + 2].cells[2].innerHTML
-                }
-                resource['telecom'].push(tel);
-            }
 
             var qua_tab = document.getElementById("qua_tab");
             const qua_tab_len = qua_tab.rows.length - 2;
@@ -151,7 +132,7 @@
                 resource['qualification'].push(qua);
             }
             console.log(resource);
-            HTTPPutData(urlStr + '/' + resource['id'], JSON.stringify(resource));
+            HTTPPutData(urlStr, JSON.stringify(resource));
         }
     </script>
 </head>
@@ -170,13 +151,15 @@
                 <option>Dr.</option>
                 <option>Prof.</option>
             </select>
+            <br />
             <span class="field">First Name: </span>
-            <input type="text" id="fname" placeholder="given name" /> &emsp;
+            <input type="text" id="fname" placeholder="given name" />
+            <br />
             <span class="field">Last Name: </span>
             <input type="text" id="lname" placeholder="family name" />
             <br />
-            <span class="field">National ID: </span>
-            <input type="text" id="national_id" />
+            <span class="field">Medical License Number: </span>
+            <input type="text" id="md" />
             <br />
             <span class="field">Gender: </span>
             <select id="gender">
@@ -189,37 +172,7 @@
             <span class="field">Date of Birth: </span>
             <input type="date" id="birthDate" />
             <br />
-            <span class="field">Telecom: </span>
-            <input type="button" id="tel_but" onclick="add_telecom_row();" value="Add More Telecom" />
-            <table id="tel_tab">
-                <tr>
-                    <td>Type</td>
-                    <td>Detail (Number/URL)</td>
-                    <td>Purpose</td>
-                </tr>
-                <tr>
-                    <td>
-                        <select id="tel_sys">
-                            <option id="tel_sys_phone" value="phone">Phone</option>
-                            <option id="tel_sys_fax" value="fax">Fax</option>
-                            <option id="tel_sys_email" value="email">Email</option>
-                            <option id="tel_sys_other" value="other">Other</option>
-                        </select>
-                    </td>
-                    <td>
-                        <input type="text" id="tel_val" />
-                    </td>
-                    <td>
-                        <select id="tel_use">
-                            <option id="tel_use_home" value="home">Home</option>
-                            <option id="tel_use_work" value="work">Work</option>
-                            <option id="tel_use_mobile" value="mobile">Mobile</option>
-                            <option id="tel_use_temp" value="temp">Temporary</option>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-            <br />
+            
             <span class="field">Qualification: </span>
             <input type="button" id="qua_but" onclick="add_qualification_row();" value="Add More Qualification" />
             <table id="qua_tab">
@@ -305,6 +258,11 @@
             </table>
             <br />
             <input type="button" onclick="putPractitioner()" value="CREATE" />
+        </div>
+        <hr />
+        <div>
+            <h1>Output Panel</h1>
+            <textarea id="output_panel" disabled style="height:500px;width:600px;"></textarea>
         </div>
     </div>
 </body>
