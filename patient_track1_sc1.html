@@ -176,6 +176,7 @@
             }
             const url = urlStr + query_string;
             console.log(url);
+            document.getElementById("url_panel").value = url;
             HTTPGetData(url, showPatient);
         }
 
@@ -321,6 +322,8 @@
             <input type="text" id="param_organization" value="" />
             <br />
             <input type="button" onclick="getPatient()" value="SEARCH" />
+            <br />
+            <textarea id="url_panel" style="height:20px;width:500px;" disabled></textarea>
         </div>
         <hr />
         <div>
