@@ -96,6 +96,10 @@
                 document.getElementById("gender").value = "male";
                 document.getElementById("birthDate").value = "";
                 document.getElementById("organization").value = "MITW.ForIdentifier";
+                document.getElementById("national_id").value = "";
+                document.getElementById("arc_id").value = "";
+                document.getElementById("passport_id").value = "";
+                document.getElementById("mr_id").value = "";
             }
             else if (json_obj['total'] == 1) {
                 var patient = json_obj['entry'][0]['resource'];
@@ -103,10 +107,6 @@
                 document.getElementById("name_prefix").value = patient['name'][0]['prefix'][0];
                 document.getElementById("fname").value = patient['name'][0]['text'].split(" ")[1];
                 document.getElementById("lname").value = patient['name'][0]['text'].split(" ")[0];
-                document.getElementById("national_id").value = "";
-                document.getElementById("arc_id").value = "";
-                document.getElementById("passport_id").value = "";
-                document.getElementById("mr_id").value = "";
                 for (let i = 0; i < patient['identifier'].length; i++) {
                     identifier_i = patient['identifier'][i];
                     if (identifier_i['system'] == "http://www.moi.gov.tw/") {
