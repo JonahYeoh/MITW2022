@@ -289,7 +289,7 @@
 
         function deletePatient(){
             const urlStr = `${URL}/Patient`;
-            var id = document.getElementById("param_patient_id").value;
+            var id = document.getElementById("patient_id").value;
             let query_string = '?'
             if (id != '') {
                 query_string += `_id=${id}`;
