@@ -167,6 +167,13 @@
                 }
                 query_string += `identifier=http://www.immigration.gov.tw/|${arc_id}`;
             }
+            var name = document.getElementById("param_name").value;
+            if (name != ''){
+                if (query_string.length > 1) {
+                    query_string += "&";
+                }
+                query_string += `name=${name}`;
+            }
             var org = document.getElementById("param_organization").value;
             if (org != '') {
                 if (query_string.length > 1) {
@@ -318,12 +325,15 @@
             <span class="field">Medical Record ID: </span>
             <input type="text" id="param_mr_id" />
             <br />
+            <span class="field">Name: </span>
+            <input type="text" id="param_name" />
+            <br />
             <span class="field">Organization: </span>
             <input type="text" id="param_organization" value="MITW.ForIdentifier" disabled/>
             <br />
             <input type="button" onclick="getPatient()" value="SEARCH" />
             <br />
-            <textarea id="url_panel" style="height:20px;width:500px;" disabled></textarea>
+            <textarea id="url_panel" style="height:100px;width:500px;" disabled></textarea>
         </div>
         <hr />
         <div>
