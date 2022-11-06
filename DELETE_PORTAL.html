@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DELETE</title>
+    <style>
+        #main {
+            width: 768px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 10px;
+        }
+
+        .field,
+        .subfield1,
+        .subfield2 {
+            width: 100px;
+            display: inline-block;
+            padding-left: 20px;
+            color: blue;
+        }
+
+        .field {
+            background-color: bisque;
+        }
+
+        .subfield1 {
+            background-color: blanchedalmond;
+        }
+
+        .subfield2 {
+            background-color: beige;
+        }
+
+        table,
+        table tr,
+        table tr td {
+            border: 1px black solid;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        input[type=text],
+        input[type=number] {
+            width: 300px;
+        }
+
+        input[type=email],
+        input[type=url] {
+            width: 200px;
+        }
+
+        select {
+            width: 120px;
+        }
+
+        .output_panel {
+            font-size: small;
+            margin-left: auto;
+            margin-right: auto;
+            width: 600px;
+            display: block;
+        }
+    </style>
+    <script src="setting.js"></script>
+    <script>
+
+        function HTTPDeleteData(urlStr, output_panel) {
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("Delete", urlStr, true);
+            rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.onreadystatechange = function () {
+                if (rawFile.readyState === 4) {
+                    ret = rawFile.responseText;
+                    alert('data retrieved');
+                    console.log(ret);
+                    output_panel.value = ret;
+                }
+            }
+            rawFile.send();
+        }
+
+        function deletePatient() {
+            var id = document.getElementById("d_id").value;
+            var resource = document.getElementById("d_resource").value;
+            if (id != '') {
+                const urlStr = `${URL}/${resource}/${id}`;
+                HTTPDeleteData(urlStr, document.getElementById("output_panel_1"));
+            }
+            else {
+                alert("Please enter Patient ID");
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="main">
+        <div id="delete">
+            <h1>Delete</h1>
+            <span class="field">Resource: </span>
+            <select id="d_resource">
+                <option>Patient</option>
+                <option>Observation</option>
+                <option>Encounter</option>
+                <option>MedicationRequest</option>
+            </select>
+            <span class="field">Patient ID:</span> <input type="text" id="d_id" />
+            <br />
+            <input type="button" onclick="deletePatient()" value="DELETE" />
+        </div>
+        <hr />
+        <div>
+            <h1>Output Panel</h1>
+            <textarea id="output_panel_1" disabled style="height:500px;width:600px;"></textarea>
+        </div>
+    </div>
+
+</body>
+
+</html>
