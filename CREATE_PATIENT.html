@@ -103,9 +103,13 @@
         function valid_birthDate(dob) {
             var date = new Date();
             let day = date.getDate();
+            if (day < 10){
+                day = `0${day}`;
+            }
             let month = date.getMonth() + 1;
             let year = date.getFullYear();
             const today = `${year}-${month}-${day}`;
+            //console.log(today + " vs " + dob);
             return dob <= today;
         }
 
@@ -317,7 +321,7 @@
             resource["address"]["city"] = address_city;
             resource["address"]["district"] = address_district;
             resource["address"]["postalCode"] = address_postalCode;
-            resource["country"] = address_country;
+            resource["address"]["country"] = address_country;
 
             resource["contact"][0]["relationship"][0]["coding"][0]["code"] = document.getElementById("contact.relationship").options[
                 document.getElementById("contact.relationship").selectedIndex
@@ -613,7 +617,7 @@
             resource["address"]["city"] = address_city;
             resource["address"]["district"] = address_district;
             resource["address"]["postalCode"] = address_postalCode;
-            resource["country"] = address_country;
+            resource["address"]["country"] = address_country;
 
             resource["contact"][0]["relationship"][0]["coding"][0]["code"] = document.getElementById("contact.relationship").options[
                 document.getElementById("contact.relationship").selectedIndex
@@ -707,7 +711,7 @@
             var postalCode = document.getElementById("address.postalCode").value;
             var contact_postalCode = document.getElementById("contact.address.postalCode").value;
 
-            if (valid_birthDate(dob) && postalCode != '' && contact_postalCode != '') {
+            if (valid_birthDate(dob) && (postalCode != '' && contact_postalCode != '')) {
                 if (postalCode.length >= 3 && contact_postalCode.length >= 3) {
                     
                     if (document.getElementById("patient_id_sc1").value == '')
