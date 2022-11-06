@@ -446,12 +446,12 @@
         }
 
         function clearOutput() {
-            var inps = document.getElementById("create").getElementsByTagName("input");
+            var inps = document.getElementById("update").getElementsByTagName("input");
             for (let i = 0; i < inps.length; i++) {
                 if (inps[i].type != "button")
                     inps[i].value = "";
             }
-            var selects = document.getElementById("create").getElementsByTagName("select");
+            var selects = document.getElementById("update").getElementsByTagName("select");
             for (let i = 0; i < selects.length; i++) {
                 selects[i].selectedIndex = 0;
             }
@@ -464,7 +464,7 @@
         function showPatient(json_obj) {
             console.log("show patient");
             const total = json_obj["total"];
-            if (total == 3) {
+            if (total == 3 || total == 2) {
                 console.log("three");
                 for (let i = 0; i < total; i++) {
                     let resource = json_obj["entry"][i]["resource"];
@@ -661,8 +661,6 @@
                                 document.getElementById("contact.address.postalCode").value = resource["contact"][0]["address"]["postalCode"];
                                 document.getElementById("contact.address.country").value = resource["contact"][0]["address"]["country"];
                             }
-
-
                         }
                         break;
                 }
@@ -768,8 +766,8 @@
             <textarea id="url_panel" style="height:100px;width:500px;" disabled></textarea>
         </div>
         <hr />
-        <div id="create">
-            <h1>Create</h1>
+        <div id="update">
+            <h1>UPDATE</h1>
             <span class="field">SC1 ID:</span> <input type="text" id="patient_id_sc1" disabled />
             <br />
             <span class="field">SC2 ID:</span> <input type="text" id="patient_id_sc2" disabled />
