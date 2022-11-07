@@ -76,7 +76,7 @@
             var resource = {
                 "resourceType": "MedicationRequest",
                 "status": "active",
-                "intent": "",
+                "intent": "order",
                 "category": [
                     {
                         "coding": [
@@ -114,15 +114,20 @@
                     {
                         "sequence": 1,
                         "text": "",
-                        "timing": [
-                            {
-                                "system": "http://hl7.org/fhir/ValueSet/timing-abbreviation",
-                                "code": document.getElementById("timing").value,
-                                    "display": document.getElementById("timing").options[
-                                        document.getElementById("timing").selectedIndex
-                                    ].innerHTML
+                        "timing":
+                        {
+                            "code": {
+                                "coding": [
+                                    {
+                                        "system": "http://hl7.org/fhir/ValueSet/timing-abbreviation",
+                                        "code": document.getElementById("timing").value,
+                                        "display": document.getElementById("timing").options[
+                                            document.getElementById("timing").selectedIndex
+                                        ].innerHTML
+                                    }
+                                ]
                             }
-                        ],
+                        },
                         "route": {
                             "coding": [
                                 {
@@ -158,7 +163,7 @@
             HTTPPostData(urlStr, JSON.stringify(resource), document.getElementById("output_panel_1"));
         }
 
-        function createMedicationRequest(){
+        function createMedicationRequest() {
             postMedicationRequest();
         }
         function fillPatientList(json_obj) {
@@ -264,7 +269,7 @@
             <select id="medication_list">
             </select>
             <br />
-            <span class="field">DateTime of Creation: </span>
+            <span class="field">Date of Creation: </span>
             <input type="date" id="authoredOn" />
             <br />
             <span class="field">Timing: </span>
