@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medication Request</title>
+    <style>
+        #main {
+            width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .field {
+            width: 150pt;
+            color: blue;
+            background-color: pink;
+            display: inline-block;
+            padding-left: 20px;
+        }
+
+        table,
+        table tr,
+        table tr td {
+            border: 1px black solid;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        input[type=text],
+        input[type=number],
+        select {
+            width: 300px;
+        }
+    </style>
+    <script>
+        function HTTPPostData(urlStr, dataStr, output_panel) {
+            console.table(dataStr);
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("Post", urlStr, true);
+            rawFile.setRequestHeader("Content-type", "application/json+fhir");
+
+            rawFile.onreadystatechange = function () {
+                if (rawFile.readyState === 4) {
+                    ret = rawFile.responseText;
+                    alert('data retrieved');
+                    console.table(ret);
+                    output_panel.value = ret;
+                }
+            }
+            rawFile.send(dataStr);
+        }
+
+        function HTTPGetData(urlStr, callback_fn, output_panel) {
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("GET", urlStr, true);
+            rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.onreadystatechange = function () {
+                if (rawFile.readyState === 4) {
+                    ret = rawFile.responseText;
+                    //alert("data retrieved");
+                    console.log(ret);
+                    output_panel.value = ret;
+                    callback_fn(JSON.parse(ret));
+                }
+            }
+            rawFile.send();
+        }
+
+        function postMedicationRequest() {
+            var resource = {
+                "resourceType": "MedicationRequest",
+                "status": "active",
+                "intent": "",
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/medicationrequest-category",
+                                "code": document.getElementById("request_category").value,
+                                "display": document.getElementById("request_category").options[
+                                    document.getElementById("request_category").selectedIndex
+                                ].innerHTML
+                            }
+                        ]
+                    }
+                ],
+                "medicationCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "https://www1.nhi.gov.tw/QueryN/Query1.aspx",
+                            "code": document.getElementById("medication_list").value,
+                            "display": document.getElementById("medication_list").options[
+                                document.getElementById("medication_list").selectedIndex
+                            ].innerHTML
+                        }
+                    ],
+                    "text": document.getElementById("medication_list").options[
+                        document.getElementById("medication_list").selectedIndex
+                    ].innerHTML
+                },
+                "subject": {
+                    "reference": "Patient/" + document.getElementById("patient_list").value
+                },
+                "requester": {
+                    "reference": "Practitioner/" + document.getElementById("practitioner_list").value
+                },
+                "dosageInstruction": [
+                    {
+                        "sequence": 1,
+                        "text": "",
+                        "timing": [
+                            {
+                                "system": "http://hl7.org/fhir/ValueSet/timing-abbreviation",
+                                "code": document.getElementById("timing").value,
+                                    "display": document.getElementById("timing").options[
+                                        document.getElementById("timing").selectedIndex
+                                    ].innerHTML
+                            }
+                        ],
+                        "route": {
+                            "coding": [
+                                {
+                                    "system": "http://mtrsoftware.com.tw/Page_L/用法表.htm",
+                                    "code": document.getElementById("route").value,
+                                    "display": document.getElementById("route").options[
+                                        document.getElementById("route").selectedIndex
+                                    ].innerHTML
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "dispenseRequest": {
+                    "quantity": {
+                        "value": document.getElementById("dispenseRequest.value").value,
+                        "unit": document.getElementById("dispenseRequest.unit").value,
+                        "system": "http://terminology.hl7.org/CodeSystem/v3-orderableDrugForm",
+                        "code": document.getElementById("dispenseRequest.unit").options[
+                            document.getElementById("dispenseRequest.unit").selectedIndex
+                        ].innerHTML
+                    },
+                    "expectedSupplyDuration": {
+                        "value": document.getElementById("duration.value").value,
+                        "unit": "days",
+                        "system": "http://unitsofmeasure.org",
+                        "code": "d"
+                    }
+                },
+                "authoredOn": document.getElementById("authoredOn").value
+            };
+            const urlStr = 'https://203.64.84.150:58443/fhirtest1/fhir/MedicationRequest';
+            HTTPPostData(urlStr, JSON.stringify(resource), document.getElementById("output_panel_1"));
+        }
+
+        function createMedicationRequest(){
+            postMedicationRequest();
+        }
+        function fillPatientList(json_obj) {
+            const total = json_obj["total"];
+            patient_list = document.getElementById("patient_list");
+            for (let i = 0; i < total; i++) {
+                let resource = json_obj["entry"][i]["resource"];
+                let option = document.createElement("option");
+                option.setAttribute('value', resource["id"]);
+                option.innerHTML = resource["id"];
+                patient_list.appendChild(option);
+                if (i + 1 == json_obj["entry"].length) {
+                    if (json_obj["link"][1]["relation"] == "next") {
+                        HTTPGetData(json_obj["link"][1]["url"], fillPatientList, document.getElementById("output_panel_1"));
+                        console.log("next page");
+                    }
+                    break;
+                }
+            }
+        }
+        function fillPractitionerList(json_obj) {
+            const total = json_obj["total"];
+            practitioner_list = document.getElementById("practitioner_list");
+            for (let i = 0; i < total; i++) {
+                let resource = json_obj["entry"][i]["resource"];
+                let option = document.createElement("option");
+                option.setAttribute('value', resource["id"]);
+                option.innerHTML = resource["id"];
+                practitioner_list.appendChild(option);
+                if (i + 1 == json_obj["entry"].length) {
+                    if (json_obj["link"][1]["relation"] == "next") {
+                        HTTPGetData(json_obj["link"][1]["url"], fillPractitionerList, document.getElementById("output_panel_1"));
+                        console.log("next page");
+                    }
+                    break;
+                }
+            }
+        }
+        function fillMedicationList(json_obj) {
+            const total = json_obj["total"];
+            medication_list = document.getElementById("medication_list");
+            for (let i = 0; i < total; i++) {
+                let resource = json_obj["entry"][i]["resource"];
+                let option = document.createElement("option");
+                option.setAttribute('value', resource["id"]);
+                option.innerHTML = resource["code"]["coding"][0]["display"];
+                medication_list.appendChild(option);
+                if (i + 1 == json_obj["entry"].length) {
+                    if (json_obj["link"][1]["relation"] == "next") {
+                        HTTPGetData(json_obj["link"][1]["url"], fillMedicationList, document.getElementById("output_panel_1"));
+                        console.log("next page");
+                    }
+                    break;
+                }
+            }
+        }
+
+        function getPatientList() {
+            const urlStr = 'https://203.64.84.150:58443/fhirtest1/fhir/Patient?organization=MITW.ForIdentifier';
+            HTTPGetData(urlStr, fillPatientList, document.getElementById("output_panel_1"));
+        }
+
+        function getPractitionerList() {
+            const urlStr = 'https://203.64.84.150:58443/fhirtest1/fhir/Practitioner';
+            HTTPGetData(urlStr, fillPractitionerList, document.getElementById("output_panel_1"));
+        }
+
+        function getMedicationList() {
+            const urlStr = 'https://203.64.84.150:58443/fhirtest1/fhir/Medication';
+            HTTPGetData(urlStr, fillMedicationList, document.getElementById("output_panel_1"));
+        }
+
+        function data_loader() {
+            getPatientList();
+            getPractitionerList();
+            getMedicationList();
+        }
+    </script>
+</head>
+
+<body onload="data_loader();">
+    <div id="main">
+        <div id="practitioner">
+            <h1>Practitioner Details: </h1>
+            <span class="field">ID: </span>
+            <select id="practitioner_list"></select>
+            <br />
+
+        </div>
+        <div id="patient">
+            <span class="field">Patient: </span>
+            <select id="patient_list"></select>
+            <br />
+            <span class="field">Request Category:</span>
+            <select id="request_category">
+                <option value="inpatient">Inpatient</option>
+                <option value="outpatient">Outpatient</option>
+                <option value="community">Community</option>
+                <option value="discharge">Discharge</option>
+            </select>
+            <br />
+            <span class="field">Medications: </span>
+            <select id="medication_list">
+            </select>
+            <br />
+            <span class="field">DateTime of Creation: </span>
+            <input type="date" id="authoredOn" />
+            <br />
+            <span class="field">Timing: </span>
+            <select id="timing">
+                <option value="Q1H">每 1 小時使用一次</option>
+                <option value="Q2H">每 2 小時使用一次</option>
+                <option value="Q3H">每 3 小時使用一次</option>
+                <option value="Q4H">每 4 小時使用一次</option>
+                <option value="Q6H">每 6 小時使用一次</option>
+                <option value="Q8H">每 8 小時使用一次</option>
+                <option value="QD">每日一次</option>
+                <option value="QDAM">每日一次上午使用</option>
+                <option value="QDPM">每日一次下午使用</option>
+                <option value="QDHS">每日一次睡前使用</option>
+                <option value="QN">每晚使用一次</option>
+                <option value="BID">每日二次</option>
+                <option value="QAM&HS">上午使用一次且睡前一次</option>
+                <option value="QPM&HS">下午使用一次且睡前一次</option>
+                <option value="QAM&PM">每日上、下午各使用一次</option>
+                <option value="TID">每日三次</option>
+                <option value="BID&HS">每日二次且睡前一次</option>
+                <option value="QID">每日四次</option>
+                <option value="HS">睡前一次</option>
+                <option value="TID&HS">每日三次且睡前一次</option>
+            </select>
+            <br />
+            <span class="field">Route: </span>
+            <select id="route">
+                <option value="AD">右耳</option>
+                <option value="AS">左耳</option>
+                <option value="AU">每耳</option>
+                <option value="ET">氣內切</option>
+                <option value="CAR">漱口用</option>
+                <option value="HD">皮下灌注</option>
+                <option value="IC">皮內注射</option>
+                <option value="IA">動脈注射</option>
+                <option value="IE">脊髓硬膜內注射</option>
+                <option value="IM">肌肉注射</option>
+                <option value="IV">靜脈注射</option>
+                <option value="IP">腹腔注射</option>
+                <option value="ICV">腦室注射</option>
+                <option value="IMP">植入</option>
+                <option value="INHL">吸入</option>
+                <option value="IS">關節腔內注射</option>
+                <option value="IT">椎骨內注射</option>
+                <option value="IVA">靜脈添加</option>
+                <option value="IVD">靜脈點滴滴入</option>
+                <option value="IVI">玻璃體內注射</option>
+                <option value="IVP">靜脈注入</option>
+                <option value="LA">局部麻醉</option>
+                <option value="LI">局部注射</option>
+                <option value="NA">鼻用</option>
+                <option value="OD">右眼</option>
+                <option value="OS">左眼</option>
+                <option value="OU">每眼</option>
+                <option value="PO">口眼</option>
+                <option value="SC">皮下注射</option>
+                <option value="SCI">結膜下注射</option>
+                <option value="SKIN">皮膚用</option>
+                <option value="SL">舌下</option>
+                <option value="SPI">脊髓</option>
+                <option value="RECT">肛門用</option>
+                <option value="TOPI">局部塗擦（與LA易混淆）</option>
+                <option value="TRN">全靜脈營養劑</option>
+                <option value="VAG">陰道用</option>
+                <option value="IRRIG">沖洗 ( irrigation )</option>
+                <option value="EXT">外用</option>
+                <option value="XX">其他</option>
+            </select>
+            <br />
+            <span class="field">Value: </span> <input type="number" id="dispenseRequest.value" min=0 />
+            <br />
+            <span class="field">Unit: </span>
+            <select id="dispenseRequest.unit">
+                <option value="DROP">Drops</option>
+
+                <option value="INHL">Inhalant</option>
+
+                <option value="SYRUP">Syrup</option>
+
+                <option value="CRM">Cream</option>
+
+                <option value="OINT">Ointment</option>
+
+                <option value="GEL">Gel</option>
+
+                <option value="PASTE">Paste</option>
+
+                <option value="PATCH">Patch</option>
+
+                <option value="TAB">Tablet</option>
+
+                <option value="POWD">Powder</option>
+            </select>
+            <br />
+            <span class="field">Durations: </span>
+            <input type="number" id="duration.value" min=1 />
+            <br />
+            <input type="button" onclick="createMedicationRequest()" value="CREATE" />
+        </div>
+        <div>
+            <h1>Output Panel</h1>
+            <textarea class="output_panel" id="output_panel_1" disabled style="height:700px;width:600px;"></textarea>
+        </div>
+    </div>
+</body>
+
+</html>
