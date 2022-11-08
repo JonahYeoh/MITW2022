@@ -43,6 +43,7 @@
             var rawFile = new XMLHttpRequest();
             rawFile.open("Put", urlStr, true);
             rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.setRequestHeader("Authorization","Bearer 8585f921-8053-4f1f-91b0-bc2994bb6d32")
             rawFile.onreadystatechange = function () {
                 if (rawFile.readyState === 4) {
                     ret = rawFile.responseText;

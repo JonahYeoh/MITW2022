@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observation Client</title>
+    <style>
+        #main {
+            width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .field {
+            width: 150pt;
+            color: blue;
+            background-color: pink;
+            display: inline-block;
+            padding-left: 20px;
+        }
+
+        table,
+        table tr,
+        table tr td {
+            border: 1px black solid;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 5px;
+        }
+
+        input[type=text],
+        input[type=number],
+        select {
+            width: 300px;
+        }
+    </style>
+    <script src="setting.js"></script>
+    <script>
+        function HTTPPostData(urlStr, dataStr) {
+            console.table(dataStr);
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("Post", urlStr, true);
+            rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            //rawFile.setRequestHeader("Authorization", "Bearer 8585f921-8053-4f1f-91b0-bc2994bb6d32");
+            rawFile.onreadystatechange = function () {
+                if (rawFile.readyState === 4) {
+                    ret = rawFile.responseText;
+                    alert('data retrieved');
+                    var output_panel = document.getElementById("output_panel");
+                    output_panel.value = ret;
+                }
+            }
+            rawFile.send(dataStr);
+        }
+
+        function HTTPGetData(urlStr, callback_fn) {
+            var rawFile = new XMLHttpRequest();
+            rawFile.open("GET", urlStr, true);
+            rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.setRequestHeader("Authorization", "Bearer 8585f921-8053-4f1f-91b0-bc2994bb6d32")
+            rawFile.onreadystatechange = function () {
+                if (rawFile.readyState === 4) {
+                    ret = rawFile.responseText;
+                    alert("data retrieved");
+                    var output_panel = document.getElementById("output_panel");
+                    output_panel.value = ret;
+                    callback_fn(JSON.parse(ret));
+                }
+            }
+            rawFile.send();
+        }
+
+        function postHeartRate() {
+            const urlStr = `${URL}/Observation`;
+            let status_array = document.getElementsByName("status");
+            let status = undefined;
+            for (let i = 0; i < status_array.length; i++) {
+                if (status_array[i].checked) {
+                    status = status_array[i].value;
+                }
+            }
+
+            var resource = {
+                "resourceType": "Observation",
+                /*"meta": {
+                    "profile": ["https://hapi.fhir.tw/fhir/StructureDefinition/ObservationForEMS.Common"]
+                },*/
+                "basedOn":[ {
+                    "reference": `MedicationRequest/${document.getElementById("medication_request_list").value}`
+                }],
+                "status": status,
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": 'vital-signs',
+                                "display": 'Vital Signs'
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": document.getElementById("code").options[document.getElementById("code").selectedIndex].value,
+                            "display": document.getElementById("code").options[document.getElementById("code").selectedIndex].innerHTML
+                        }
+                    ]
+                },
+                "subject": {
+                    "reference": "Patient/" + document.getElementById('patient_id').value
+                },
+                "effectiveDateTime": document.getElementById('effectiveDateTime').value + ':00' + '+08:00',
+                "valueQuantity": {
+                    "value": parseInt(document.getElementById("value").value),
+                    "unit": document.getElementById("unit").value,
+                    "system": "http://unitsofmeasure.org",
+                    "code": document.getElementById("unit").value
+                }
+            };
+            console.log(resource);
+            HTTPPostData(urlStr, JSON.stringify(resource));
+        }
+
+        function postBloodPressure() {
+            const urlStr = `${URL}/Observation`;
+            let status_array = document.getElementsByName("status");
+            let status = undefined;
+            for (let i = 0; i < status_array.length; i++) {
+                if (status_array[i].checked) {
+                    status = status_array[i].value;
+                }
+            }
+
+            var resource = {
+                "resourceType": "Observation",
+                /*"meta": {
+                    "profile": ["https://hapi.fhir.tw/fhir/StructureDefinition/ObservationForEMS.Common"]
+                },*/
+                "basedOn": [{
+                    "reference": `MedicationRequest/${document.getElementById("medication_request_list").value}`
+                }],
+                "status": status,
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                                "code": 'vital-signs',
+                                "display": 'Vital Signs'
+                            }
+                        ]
+                    }
+                ],
+                "code": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": document.getElementById("code").options[document.getElementById("code").selectedIndex].value,
+                            "display": document.getElementById("code").options[document.getElementById("code").selectedIndex].innerHTML
+                        }
+                    ]
+                },
+                "subject": {
+                    "reference": "Patient/" + document.getElementById('patient_id').value
+                },
+                "effectiveDateTime": document.getElementById('effectiveDateTime').value + ':00' + '+08:00',
+                "component": [
+                    {
+                        "code": {
+                            "coding": [
+                                {
+                                    "system": "http://loinc.org",
+                                    "code": "8480-6",
+                                    "display": "Systolic Blood Pressure"
+                                }
+                            ]
+                        },
+
+                        "valueQuantity": {
+                            "value": parseInt(document.getElementById("value").value),
+                            "unit": document.getElementById("unit").value,
+                            "system": "http://unitsofmeasure.org",
+                            "code": document.getElementById("unit").value
+                        }
+
+                    },
+                    {
+                        "code": {
+                            "coding": [
+                                {
+                                    "system": "http://loinc.org",
+                                    "code": "8462-4",
+                                    "display": "Diastolic Blood Pressure"
+                                }
+                            ]
+                        },
+
+                        "valueQuantity": {
+                            "value": parseInt(document.getElementById("value2").value),
+                            "unit": document.getElementById("unit").value,
+                            "system": "http://unitsofmeasure.org",
+                            "code": document.getElementById("unit").value
+                        }
+
+                    }
+                ]
+
+
+            };
+            console.log(resource);
+            HTTPPostData(urlStr, JSON.stringify(resource));
+        }
+
+
+        function getObservation() {
+            const urlStr = `${URL}/Observation`;
+
+            const patient_id = document.getElementById('param_patient_id').value;
+            const loinc_code = document.getElementById("param_code").options[document.getElementById("param_code").selectedIndex].value;
+            const start_time = document.getElementById('startdate').value;
+            const end_time = document.getElementById('enddate').value;
+
+            var query_string = '?';
+            
+            if (patient_id != '') {
+                query_string += `subject=${patient_id}&`;
+            }
+            if (loinc_code != '') {
+                query_string += `code=${loinc_code}&`;
+            }
+            if(start_time != '')
+            {
+                query_string += `date=gt${start_time}&`
+            }
+            if(end_time != ''){
+                query_string += `date=lt${end_time}&`
+            }
+            
+            HTTPGetData(urlStr + query_string, showObservations);
+        }
+
+        function showObservations(json_obj) {
+            var table = document.getElementById('observation_table');
+            table.innerHTML = '';
+            var rowCount = json_obj['total'];
+            if (rowCount > 0) {
+                const columns = ['id', 'status', 'category_display', 'code_display', 'subject', 'effectiveDateTime', 'basedOn', 'valueQuantity_value unit'];
+                var row = table.insertRow(0);
+                for (let i = 0; i < columns.length; i++) {
+                    var cell = row.insertCell(i);
+                    cell.innerHTML = columns[i];
+                }
+                var resources = json_obj['entry'];
+
+                for (let i = 0; i < rowCount; i++) {
+                    const i_resource = resources[i]['resource'];
+                    //console.log(i_resource);
+                    var dataRow = table.insertRow(i + 1);
+                    var id = dataRow.insertCell(0);
+                    id.innerHTML = i_resource['id'];
+
+                    var status = dataRow.insertCell(1);
+                    status.innerHTML = i_resource['status'];
+
+                    var category_display = dataRow.insertCell(2);
+                    category_display.innerHTML = i_resource['category'][0]['coding'][0]['display'];
+
+                    var code_display = dataRow.insertCell(3);
+                    code_display.innerHTML = i_resource['code']['coding'][0]['display'];
+
+                    var subject = dataRow.insertCell(4);
+                    subject.innerHTML = i_resource['subject']['reference'].split('/')[1];
+
+                    var effectiveDateTime = dataRow.insertCell(5);
+                    effectiveDateTime.innerHTML = i_resource['effectiveDateTime'];
+
+                    var basedOn = dataRow.insertCell(6);
+                    basedOn.innerHTML = i_resource['basedOn']==undefined? "":i_resource['basedOn'][0]['reference'];
+                    
+                    var valueQuantity = dataRow.insertCell(7);
+                    if (i_resource['code']['coding'][0]['code'] == '35094-2'){
+                        valueQuantity.innerHTML = i_resource['component'][0]['valueQuantity']['value'] + '/' + i_resource['component'][1]['valueQuantity']['value'] + ' ' + i_resource['component'][0]['valueQuantity']['unit'];
+                    }
+                    else {
+                        valueQuantity.innerHTML = i_resource['valueQuantity']['value'] + ' ' + i_resource['valueQuantity']['unit'];
+                    }
+                        
+                   
+                }
+            }
+        }
+
+        function createObservation() {
+            const code = document.getElementById("code").value;
+            var unit = document.getElementById("unit");
+            switch (code) {
+                case "8867-4":
+                    postHeartRate();
+                    break;
+                case "35094-2":
+                    postBloodPressure();
+                    break;
+            }
+        }
+
+        function update_relevant_field() {
+            const code = document.getElementById("code").value;
+            var unit = document.getElementById("unit");
+            switch (code) {
+                case "8867-4":
+                    unit.selectedIndex = 0;
+                    document.getElementById("value2").style.display = "none";
+                    break;
+                case "35094-2":
+                    unit.selectedIndex = 1;
+                    document.getElementById("value2").style.display = "block";
+                    break;
+            }
+        }
+
+    </script>
+</head>
+
+<body>
+    <div id="main">
+        <div id="retrieve">
+            <h1>Search</h1>
+            <span class="field">Patient id: </span> <input type="text" id="param_patient_id" />
+            <br />
+            <span class="field">Loinc Code: </span>
+            <select id="param_code">
+                <option value="8867-4">Heart Rate</option>
+                <option value="35094-2">Blood Pressure Panel</option>
+            </select>
+            <br />
+            <span class="field">Start Time:</span><input type="datetime-local" id="startdate" />
+            <br />
+            <span class="field">End Time:</span><input type="datetime-local" id="enddate" />
+            <br />
+            <input type="button" onclick="getObservation()" value="SEARCH" />
+            <br />
+            <table id="observation_table"></table>
+        </div>
+        <div id="create">
+            <h1>Create</h1>
+            <span class="field">Patient id: </span> <input type="text" id="patient_id" />
+            <br />
+            <span class="field">Medication Request: </span> <input type="text" id="medication_request_list" />
+            <br />
+            <span class="field">Status:</span> <input type="radio" name="status" value="final" id="final" checked
+                disabled /> <label for="final">Final</label>
+            <br />
+            <span class="field">Code | Type: </span>
+            <select id="code" onchange="update_relevant_field()">
+                <option value="8867-4">Heart Rate</option>
+                <option value="35094-2">Blood Pressure Panel</option>
+            </select>
+            <br />
+            <span class="field">Category: </span>
+            <input type="radio" name="category" value="Vital Signs" id="vital-signs" checked disabled />
+            <label for="vital-signs">Vital Signs</label>
+            <br />
+
+            <span class="field">Effective Datetime: </span> <input type="datetime-local" id="effectiveDateTime" />
+            <br />
+            <span class="field">Value: </span> <input type="number" id="value" />
+            <input type="number" id="value2" style="display: none;" />
+            <br />
+            <span class="field">Unit: </span>
+            <select id="unit" disabled>
+                <option id="beats/min" value="beats/min" selected>beats/min</option>
+                <option id="mmHg" value="mmHg">mmHg</option>
+            </select>
+            <br />
+            <input type="button" onclick="createObservation()" value="CREATE" />
+        </div>
+        <hr />
+        <div>
+            <h1>Output Panel</h1>
+            <textarea id="output_panel" disabled style="height:500px;width:600px;"></textarea>
+        </div>
+    </div>
+</body>
+
+</html>

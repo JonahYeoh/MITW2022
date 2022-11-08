@@ -74,6 +74,7 @@
             var rawFile = new XMLHttpRequest();
             rawFile.open("Put", urlStr, true);
             rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.setRequestHeader("Authorization","Bearer 8585f921-8053-4f1f-91b0-bc2994bb6d32")
             rawFile.onreadystatechange = function () {
                 if (rawFile.readyState === 4) {
                     ret = rawFile.responseText;
@@ -89,6 +90,7 @@
             var rawFile = new XMLHttpRequest();
             rawFile.open("GET", urlStr, true);
             rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.setRequestHeader("Authorization","Bearer 8585f921-8053-4f1f-91b0-bc2994bb6d32")
             rawFile.onreadystatechange = function () {
                 if (rawFile.readyState === 4) {
                     ret = rawFile.responseText;
@@ -118,7 +120,7 @@
             var resource = {
                 "resourceType": "Patient",
                 "meta": {
-                    "profile": ["http://192.168.50.6:8082/fhir/StructureDefinition/PatientForIdentifier"]
+                    "profile": ["https://hapi.fhir.tw/fhir/StructureDefinition/Patient-MITW2022-T1SC1"]
                 },
                 "identifier": [
                     {
@@ -197,7 +199,7 @@
             var resource = {
                 "resourceType": "Patient",
                 "meta": {
-                    "profile": ["http://192.168.50.6:8082/fhir/StructureDefinition/PatientForContact"]
+                    "profile": ["https://hapi.fhir.tw/fhir/StructureDefinition/Patient-MITW2022-T1SC2"]
                 },
                 "identifier": [
                     {
@@ -232,14 +234,14 @@
                     { "system": "email", "value": document.getElementById("telecom.email").value },
                     { "system": "url", "value": document.getElementById("telecom.other").value }
                 ],
-                "address": {
+                "address": [{
                     "text": "",
                     "line": [],
                     "city": "",
                     "district": "",
                     "postalCode": "",
                     "country": ""
-                },
+                }],
                 "contact": [
                     {
                         "relationship": [
@@ -317,12 +319,12 @@
             var address_district = document.getElementById("address.district").value;
             var address_postalCode = document.getElementById("address.postalCode").value;
             var address_country = document.getElementById("address.country").value;
-            resource["address"]["text"] = `${address_postalCode} ${address_country} ${address_district} ${address_city} ${address_line}`;
-            resource["address"]["line"] = address_line;
-            resource["address"]["city"] = address_city;
-            resource["address"]["district"] = address_district;
-            resource["address"]["postalCode"] = address_postalCode;
-            resource["address"]["country"] = address_country;
+            resource["address"][0]["text"] = `${address_postalCode} ${address_country} ${address_district} ${address_city} ${address_line}`;
+            resource["address"][0]["line"][0] = address_line;
+            resource["address"][0]["city"] = address_city;
+            resource["address"][0]["district"] = address_district;
+            resource["address"][0]["postalCode"] = address_postalCode;
+            resource["address"][0]["country"] = address_country;
 
             resource["contact"][0]["relationship"][0]["coding"][0]["code"] = document.getElementById("contact.relationship").options[
                 document.getElementById("contact.relationship").selectedIndex
@@ -338,7 +340,7 @@
             var contact_address_postalCode = document.getElementById("contact.address.postalCode").value;
             var contact_address_country = document.getElementById("contact.address.country").value;
             resource["contact"][0]["address"]["text"] = `${contact_address_postalCode} ${contact_address_country} ${contact_address_district} ${contact_address_city} ${contact_address_line}`;
-            resource["contact"][0]["address"]["line"] = contact_address_line;
+            resource["contact"][0]["address"]["line"][0] = contact_address_line;
             resource["contact"][0]["address"]["city"] = contact_address_city;
             resource["contact"][0]["address"]["district"] = contact_address_district;
             resource["contact"][0]["address"]["postalCode"] = contact_address_postalCode;
@@ -355,7 +357,7 @@
             var resource = {
                 "resourceType": "Patient",
                 "meta": {
-                    "profile": ["http://192.168.50.6:8082/fhir/StructureDefinition/PatientForPHR"]
+                    "profile": ["https://hapi.fhir.tw/fhir/StructureDefinition/Patient-MITW2022-T1SC3"]
                 },
                 "identifier": [
                     {
@@ -371,7 +373,7 @@
                         "system": "",
                         "value": document.getElementById("identifier_value").value
                     },
-                    {
+                    /*{
                         "use": "official",
                         "type": {
                             "coding": [
@@ -383,7 +385,7 @@
                         },
                         "system": "https://www.tph.mohw.gov.tw/",
                         "value": document.getElementById("mr_id").value
-                    }
+                    }*/
                 ],
                 "active": true,
                 "managingOrganization": {
@@ -517,7 +519,7 @@
                             document.getElementById("telecom.other").value = resource["telecom"][2]["value"];
                             // address
                             if (resource["address"] != undefined) {
-                                document.getElementById("address.line").value = resource["address"][0]["line"];
+                                document.getElementById("address.line").value = resource["address"][0]["line"][0];
                                 document.getElementById("address.city").value = resource["address"][0]["city"];
                                 document.getElementById("address.district").value = resource["address"][0]["district"];
                                 document.getElementById("address.postalCode").value = resource["address"][0]["postalCode"];
@@ -541,7 +543,7 @@
                                 document.getElementById("contact.telecom.other").value = resource["contact"][0]["telecom"][2]["value"];
                                 // contact.address
                                 if (resource["contact"][0]["address"] != undefined) {
-                                    document.getElementById("contact.address.line").value = resource["contact"][0]["address"]["line"];
+                                    document.getElementById("contact.address.line").value = resource["contact"][0]["address"]["line"][0];
                                     document.getElementById("contact.address.city").value = resource["contact"][0]["address"]["city"];
                                     document.getElementById("contact.address.district").value = resource["contact"][0]["address"]["district"];
                                     document.getElementById("contact.address.postalCode").value = resource["contact"][0]["address"]["postalCode"];
@@ -631,7 +633,7 @@
                         document.getElementById("telecom.other").value = resource["telecom"][2]["value"];
                         // address
                         if (resource["address"] != undefined) {
-                            document.getElementById("address.line").value = resource["address"][0]["line"];
+                            document.getElementById("address.line").value = resource["address"][0]["line"][0];
                             document.getElementById("address.city").value = resource["address"][0]["city"];
                             document.getElementById("address.district").value = resource["address"][0]["district"];
                             document.getElementById("address.postalCode").value = resource["address"][0]["postalCode"];
@@ -655,7 +657,7 @@
                             document.getElementById("contact.telecom.other").value = resource["contact"][0]["telecom"][2]["value"];
                             // contact.address
                             if (resource["contact"][0]["address"] != undefined) {
-                                document.getElementById("contact.address.line").value = resource["contact"][0]["address"]["line"];
+                                document.getElementById("contact.address.line").value = resource["contact"][0]["address"]["line"][0];
                                 document.getElementById("contact.address.city").value = resource["contact"][0]["address"]["city"];
                                 document.getElementById("contact.address.district").value = resource["contact"][0]["address"]["district"];
                                 document.getElementById("contact.address.postalCode").value = resource["contact"][0]["address"]["postalCode"];

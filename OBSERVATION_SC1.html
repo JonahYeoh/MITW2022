@@ -45,6 +45,7 @@
             var rawFile = new XMLHttpRequest();
             rawFile.open("Post", urlStr, true);
             rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.setRequestHeader("Authorization","Bearer 8585f921-8053-4f1f-91b0-bc2994bb6d32");
             rawFile.onreadystatechange = function () {
                 if (rawFile.readyState === 4) {
                     ret = rawFile.responseText;
@@ -60,6 +61,7 @@
             var rawFile = new XMLHttpRequest();
             rawFile.open("GET", urlStr, true);
             rawFile.setRequestHeader("Content-type", "application/json+fhir");
+            rawFile.setRequestHeader("Authorization","Bearer 8585f921-8053-4f1f-91b0-bc2994bb6d32")
             rawFile.onreadystatechange = function () {
                 if (rawFile.readyState === 4) {
                     ret = rawFile.responseText;
@@ -84,6 +86,9 @@
 
             var resource = {
                 "resourceType": "Observation",
+                "meta": {
+                    "profile": ["https://hapi.fhir.tw/fhir/StructureDefinition/ObservationForEMS.Common"]
+                },
                 "status": status,
                 "category": [
                     {
@@ -108,9 +113,9 @@
                 "subject": {
                     "reference": "Patient/" + document.getElementById('patient_id').value
                 },
-                "effectiveDateTime": document.getElementById('effectiveDateTime').value + ':00',
+                "effectiveDateTime": document.getElementById('effectiveDateTime').value + ':00' + '+08:00',
                 "valueQuantity": {
-                    "value": document.getElementById("value").value,
+                    "value": parseInt(document.getElementById("value").value),
                     "unit": document.getElementById("unit").value,
                     "system": "http://unitsofmeasure.org",
                     "code": document.getElementById("unit").value
