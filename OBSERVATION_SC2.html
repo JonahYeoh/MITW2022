@@ -144,12 +144,6 @@
                         "reference": "Patient/" + document.getElementById('patient_id').value
                     },
                     "effectiveDateTime": document.getElementById('effectiveDateTime').value + ':00',
-                    "valueQuantity": {
-                        "value": document.getElementById("value").value,
-                        "unit": document.getElementById("unit").value,
-                        "system": "http://unitsofmeasure.org",
-                        "code": document.getElementById("unit").value
-                    },
                     "component": [{
                         "code": {
                             "coding": [
@@ -229,7 +223,9 @@
 
             const patient_id = document.getElementById('param_patient_id').value;
             const loinc_code = document.getElementById("param_code").options[document.getElementById("param_code").selectedIndex].value;
-
+            const start_dt = document.getElementById("param_start").value;
+            const end_dt = document.getElementById("param_end").value;
+            console.log(start_dt + "-" + end_dt);
             var query_string = undefined;
             if (patient_id != '') {
                 query_string = `?subject=${patient_id}&code=${loinc_code}`;
@@ -237,7 +233,13 @@
             else {
                 query_string = `?code=${loinc_code}`;
             }
-            HTTPGetData(urlStr + query_string, showObservations);
+            if (start_dt != ""){
+                query_string += `&date=gt${start_dt}`;
+            }
+            if (end_dt != ""){
+                query_string += `&date=lt${end_dt}`;
+            }
+            HTTPGetData(urlStr + query_string, showObservations, document.getElementById("output_panel"));
         }
 
         function showObservations(json_obj) {
@@ -276,7 +278,13 @@
                     effectiveDateTime.innerHTML = i_resource['effectiveDateTime'];
 
                     var valueQuantity = dataRow.insertCell(6);
-                    valueQuantity.innerHTML = i_resource['valueQuantity']['value'] + ' ' + i_resource['valueQuantity']['unit'];
+                    if (i_resource["valueQuantity"] != undefined)
+                        valueQuantity.innerHTML = i_resource['valueQuantity']['value'] + ' ' + i_resource['valueQuantity']['unit'];
+                    else if (i_resource["code"]["coding"][0]["code"] == "35094-2"){
+                        valueQuantity.innerHTML = i_resource['component'][0]["valueQuantity"]['value'] 
+                        + '/' + i_resource['component'][1]["valueQuantity"]['value'] 
+                        + ' ' + i_resource['component'][0]['valueQuantity']['unit'];
+                    }
                 }
             }
         }
@@ -353,6 +361,10 @@
                 <option value="8867-4">Heart Rate</option>
                 <option value="35094-2">Blood Pressure Panel</option>
             </select>
+            <br />
+            <span class="field">Start: </span> <input type="datetime-local" id="param_start" />
+            <br />
+            <span class="field">End: </span> <input type="datetime-local" id="param_end" />
             <br />
             <input type="button" onclick="getObservation()" value="SEARCH" />
             <br />
