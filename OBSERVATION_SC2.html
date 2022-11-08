@@ -182,7 +182,7 @@
             }
             let ref = document.getElementById("medication_request_id").value;
             if (ref != ""){
-                resource["basedOn"] = {"reference": `MedicationRequest/${ref}`};
+                resource["basedOn"] = [{"reference": `MedicationRequest/${ref}`}];
             }
             console.log(resource);
             HTTPPostData(urlStr, JSON.stringify(resource), document.getElementById("output_panel"));
@@ -247,7 +247,7 @@
             table.innerHTML = '';
             var rowCount = json_obj['total'];
             if (rowCount > 0) {
-                const columns = ['id', 'status', 'category_display', 'code_display', 'subject', 'effectiveDateTime', 'valueQuantity_value unit'];
+                const columns = ['id', 'status', 'category_display', 'code_display', 'subject', 'effectiveDateTime', 'valueQuantity_value unit', 'basedOn'];
                 var row = table.insertRow(0);
                 for (let i = 0; i < columns.length; i++) {
                     var cell = row.insertCell(i);
@@ -284,6 +284,15 @@
                         valueQuantity.innerHTML = i_resource['component'][0]["valueQuantity"]['value'] 
                         + '/' + i_resource['component'][1]["valueQuantity"]['value'] 
                         + ' ' + i_resource['component'][0]['valueQuantity']['unit'];
+                    }
+
+                    var basedOn = dataRow.insertCell(7);
+                    if (i_resource["basedOn"] != undefined){
+                        basedOn.innerHTML = i_resource["basedOn"][0]["reference"];
+                    }
+                    else
+                    {
+                        basedOn.innerHTML = "";
                     }
                 }
             }
